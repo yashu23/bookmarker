@@ -3,7 +3,9 @@ package com.lucky5.bookmarker.services;
 import com.lucky5.bookmarker.model.Record;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -24,6 +26,9 @@ public class BookmarkerServiceImplTests {
 
     private BookmarkerService bookmarkerService = new BookmarkerServiceImpl();
 
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
+
     @Before
     public void setup() {
         bookmarkerService.getAllRecords().forEach((record) -> bookmarkerService.deleteRecord(record.getId()));
@@ -32,28 +37,20 @@ public class BookmarkerServiceImplTests {
     @Test
     public void addRecord_WithBlankInfoShouldFail() {
 
-        int initialSize = bookmarkerService.getAllRecords().size();
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("info cant be blank or null");
 
-        Assert.assertFalse("add record operation fails",
-                bookmarkerService.addRecord("", Arrays.asList("test")));
-
-        Assert.assertEquals("no records added",
-                initialSize,
-                bookmarkerService.getAllRecords().size());
+        bookmarkerService.addRecord("", new ArrayList<>());
 
     }
 
     @Test
     public void addRecord_WithNullInfoShouldFail() {
 
-        int initialSize = bookmarkerService.getAllRecords().size();
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("info cant be blank or null");
 
-        Assert.assertFalse("add record operation fails",
-                bookmarkerService.addRecord(null, Arrays.asList("test")));
-
-        Assert.assertEquals("no records added",
-                initialSize,
-                bookmarkerService.getAllRecords().size());
+        bookmarkerService.addRecord(null, new ArrayList<>());
     }
 
     @Test
@@ -61,8 +58,8 @@ public class BookmarkerServiceImplTests {
 
         int initialSize = bookmarkerService.getAllRecords().size();
 
-        Assert.assertTrue("add record operation fails",
-                bookmarkerService.addRecord("www.google.com", Arrays.asList("google")));
+        Assert.assertNotNull("add record operation failed",
+                bookmarkerService.addRecord("www.google.com", new ArrayList<>()));
 
         Assert.assertEquals("record added successfully",
                 initialSize + 1,
@@ -74,8 +71,8 @@ public class BookmarkerServiceImplTests {
 
         int initialSize = bookmarkerService.getAllRecords().size();
 
-        Assert.assertTrue("add record operation fails",
-                bookmarkerService.addRecord("www.google.com", Arrays.asList("google")));
+        Assert.assertNotNull("add record operation failed",
+                bookmarkerService.addRecord("www.google.com", null));
 
         Assert.assertEquals("record added successfully",
                 initialSize + 1,
@@ -87,8 +84,11 @@ public class BookmarkerServiceImplTests {
 
         int initialSize = bookmarkerService.getAllRecords().size();
 
-        Assert.assertTrue("add record operation fails",
-                bookmarkerService.addRecord("www.google.com", Arrays.asList("google")));
+        List<String> tags = new ArrayList<>();
+        tags.add("google");
+
+        Assert.assertNotNull("add record operation failed",
+                bookmarkerService.addRecord("www.google.com", tags));
 
         Assert.assertEquals("record added successfully",
                 initialSize + 1,
@@ -98,6 +98,8 @@ public class BookmarkerServiceImplTests {
     @Test
     public void deleteRecord_WithValidIdShouldBeSuccessful() {
 
+        int initialSize = bookmarkerService.getAllRecords().size();
+        
         bookmarkerService.addRecord("www.google.com", null);
         
         Record record = bookmarkerService.getAllRecords().get(0);
@@ -105,22 +107,23 @@ public class BookmarkerServiceImplTests {
         Assert.assertTrue("delete record operation fails",
                 bookmarkerService.deleteRecord(record.getId()));
 
-        Assert.assertEquals("record added successfully",
-                0,
+        Assert.assertEquals("record size intact",
+                initialSize,
                 bookmarkerService.getAllRecords().size());
     }
 
     @Test
     public void deleteRecord_WithInvalidIdShouldFail() {
+
         bookmarkerService.addRecord("www.google.com", null);
 
-        Record record = bookmarkerService.getAllRecords().get(0);
+        int initialSize = bookmarkerService.getAllRecords().size();
 
         Assert.assertFalse("delete record operation fails",
                 bookmarkerService.deleteRecord("test"));
 
-        Assert.assertEquals("record added successfully",
-                1,
+        Assert.assertEquals("record size intact",
+                initialSize,
                 bookmarkerService.getAllRecords().size());
     }
 
@@ -129,13 +132,13 @@ public class BookmarkerServiceImplTests {
 
         bookmarkerService.addRecord("www.google.com", null);
 
-        Record record = bookmarkerService.getAllRecords().get(0);
+        int initialSize = bookmarkerService.getAllRecords().size();
 
         Assert.assertFalse("delete record operation fails",
                 bookmarkerService.deleteRecord(""));
 
         Assert.assertEquals("record added successfully",
-                1,
+                initialSize,
                 bookmarkerService.getAllRecords().size());
     }
 
@@ -144,13 +147,13 @@ public class BookmarkerServiceImplTests {
 
         bookmarkerService.addRecord("www.google.com", null);
 
-        Record record = bookmarkerService.getAllRecords().get(0);
+        int initialSize = bookmarkerService.getAllRecords().size();
 
         Assert.assertFalse("delete record operation fails",
                 bookmarkerService.deleteRecord(null));
 
         Assert.assertEquals("record added successfully",
-                1,
+                initialSize,
                 bookmarkerService.getAllRecords().size());
     }
 
@@ -165,16 +168,20 @@ public class BookmarkerServiceImplTests {
     @Test
     public void getAllRecords_OneRecordAddedShouldReturnOneRecord() {
 
+        int initialSize = bookmarkerService.getAllRecords().size();
+
         bookmarkerService.addRecord("www.google.com", null);
+
         Assert.assertEquals("records present",
-                1,
+                initialSize + 1,
                 bookmarkerService.getAllRecords().size());
 
-        Record record = bookmarkerService.getAllRecords().get(0);
     }
 
     @Test
-    public void getFilteredRecord_NoRecordsAddedShouldReturnNoRecord() {
+    public void getFilteredRecord_NoMatchingTagShouldReturnNoRecord() {
+
+        bookmarkerService.addRecord("www.google.com", null);
 
         Assert.assertEquals("records present",
                 0,
@@ -182,7 +189,7 @@ public class BookmarkerServiceImplTests {
     }
 
     @Test
-    public void getFilteredRecord_RecordsAddedWithNullTagShouldReturnAllRecords() {
+    public void getFilteredRecord_NullInputTagShouldReturnAllRecords() {
 
         bookmarkerService.addRecord("www.google.com", null);
         bookmarkerService.addRecord("www.apple.com", null);
@@ -193,7 +200,7 @@ public class BookmarkerServiceImplTests {
     }
 
     @Test
-    public void getFilteredRecord_RecordsAddedWithBlankTagShouldReturnAllRecords() {
+    public void getFilteredRecord_BlankInputTagShouldReturnAllRecords() {
 
         bookmarkerService.addRecord("www.google.com", null);
         bookmarkerService.addRecord("www.apple.com", null);
@@ -204,9 +211,9 @@ public class BookmarkerServiceImplTests {
     }
 
     @Test
-    public void getFilteredRecord_RecordsAddedWithValidTagShouldReturnOnlyMatchingRecords() {
+    public void getFilteredRecord_ValidTagShouldReturnOnlyMatchingRecords() {
 
-        bookmarkerService.addRecord("www.google.com", Arrays.asList("test","google"));
+        bookmarkerService.addRecord("www.google.com", Arrays.asList("test", "google"));
         bookmarkerService.addRecord("www.apple.com", Arrays.asList("dev", "apple"));
 
         Assert.assertEquals("records present",
@@ -221,8 +228,8 @@ public class BookmarkerServiceImplTests {
     @Test
     public void getFilteredRecord_RecordsAddedWithInvalidTagShouldReturnNoRecords() {
 
-        bookmarkerService.addRecord("www.google.com", Arrays.asList("test, google"));
-        bookmarkerService.addRecord("www.apple.com", Arrays.asList("dev, apple"));
+        bookmarkerService.addRecord("www.google.com", Arrays.asList("test", "google"));
+        bookmarkerService.addRecord("www.apple.com", Arrays.asList("dev", "apple"));
 
         Assert.assertEquals("records present",
                 0,
@@ -230,228 +237,205 @@ public class BookmarkerServiceImplTests {
     }
 
     @Test
-    public void addTag_NullIdWithValidTagShouldFail() {
+    public void updateRecord_WithNullRecordShouldFail() {
 
-        List<String> tags = new ArrayList<>();
-        tags.add("apple");
-        tags.add("google");
-        
-        bookmarkerService.addRecord("www.google.com", tags);
-
-        Record record = bookmarkerService.getAllRecords().get(0);
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("invalid record id");
 
         Assert.assertFalse("records present",
-                bookmarkerService.addTag(null, "valid"));
-
-        Assert.assertEquals("records changed",
-                1,
-                bookmarkerService.getAllRecords().size());
-
-        record = bookmarkerService.getAllRecords().get(0);
-
-        Assert.assertEquals("tags changed",
-                tags,
-                record.getTags());
+                bookmarkerService.updateRecord(null));
 
     }
 
     @Test
-    public void addTag_BlankIdWithValidTagShouldFail() {
+    public void updateRecord_WithRecordHavingBlankOrNullIdShouldFail() {
 
-        List<String> tags = new ArrayList<>();
-        tags.add("apple");
-        tags.add("google");
-        
-        bookmarkerService.addRecord("www.google.com", tags);
+        Record record = new Record();
+        record.setId("");
 
-        Record record = bookmarkerService.getAllRecords().get(0);
+        int originalSize = bookmarkerService.getAllRecords().size();
 
-        Assert.assertFalse("records present",
-                bookmarkerService.addTag("", "valid"));
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("invalid record id");
 
-        Assert.assertEquals("records changed",
-                1,
-                bookmarkerService.getAllRecords().size());
+        bookmarkerService.updateRecord(record);
 
-        Assert.assertEquals("tags changed",
-                tags,
-                record.getTags());
+        record.setId(null);
+
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("invalid record id");
+
+        bookmarkerService.updateRecord(record);
     }
 
     @Test
-    public void addTag_ValidIdWithBlankTagShouldBeIgnored() {
+    public void updateRecord_WithBlankOrNullInfoRecordShouldFail() {
 
-        List<String> tags = new ArrayList<>();
-        tags.add("apple");
-        tags.add("google");
-        
-        bookmarkerService.addRecord("www.google.com", tags);
+        Record record = new Record();
+        record.setId("test");
 
-        Record record = bookmarkerService.getAllRecords().get(0);
+        record.setInfo("");
 
-        Assert.assertFalse("records present",
-                bookmarkerService.addTag(record.getId(), ""));
+        int originalSize = bookmarkerService.getAllRecords().size();
 
-        Assert.assertEquals("tags changed",
-                tags,
-                record.getTags());
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("invalid record id");
+
+        bookmarkerService.updateRecord(record);
+
+        record.setInfo("");
+
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("invalid record id");
+
+        bookmarkerService.updateRecord(record);
     }
 
     @Test
-    public void addTag_ValidIdWithNullTagShouldBeIgnored() {
+    public void getRecord_WithBlankIdShouldFail() {
 
-        List<String> tags = new ArrayList<>();
-        tags.add("apple");
-        tags.add("google");
-        
-        bookmarkerService.addRecord("www.google.com", tags);
-        
-        Record record = bookmarkerService.getAllRecords().get(0);
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("info cant be blank or null");
 
-        Assert.assertFalse("records present",
-                bookmarkerService.addTag(record.getId(), null));
-
-        Assert.assertEquals("tags changed",
-                tags,
-                record.getTags());
+        bookmarkerService.getRecord("");
     }
 
     @Test
-    public void addTag_ValidIdWithValidTagShouldBeSuccessful() {
+    public void getRecord_WithNullIdShouldFail() {
+
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("info cant be blank or null");
+
+        bookmarkerService.getRecord(null);
+    }
+
+    @Test
+    public void getRecord_WithValidIdShouldBeSuccessful() {
+
+        bookmarkerService.addRecord("www.google.com", null);
+
+        Record record = bookmarkerService.getAllRecords().get(0);
+
+        Assert.assertEquals("search mismatch",
+                record,
+                bookmarkerService.getRecord(record.getId()));
+    }
+
+
+    @Test
+    public void updateTags_ValidRecordWithValidTagShouldBeSuccessful() {
 
         List<String> tags = new ArrayList<>();
         tags.add("apple");
         tags.add("google");
         
+        // Create record with two tags present
         bookmarkerService.addRecord("www.google.com", tags);
 
         Record record = bookmarkerService.getAllRecords().get(0);
-        List<String> originalTags = record.getTags();
 
-        Assert.assertTrue("records present",
-                bookmarkerService.addTag(record.getId(), "test2"));
+        tags.add("test");
 
+        Assert.assertTrue("tag update failed",
+                bookmarkerService.updateTags(record, tags));
+
+        Assert.assertEquals("tags changed",
+                tags,
+                bookmarkerService.getRecord(record.getId()).getTags());
+    }
+
+    @Test
+    public void updateTags_ValidRecordWithNewTagShouldOverride() {
+
+        List<String> tags = new ArrayList<>();
+        tags.add("apple");
+        tags.add("google");
+
+        // Create record with two tags present
+        bookmarkerService.addRecord("www.google.com", tags);
+
+        Record record = bookmarkerService.getAllRecords().get(0);
+
+        tags.clear();
+        tags.add("test1");
         tags.add("test2");
 
+        Assert.assertTrue("tag update failed",
+                bookmarkerService.updateTags(record, tags));
+
         Assert.assertEquals("tags changed",
                 tags,
-                record.getTags());
+                bookmarkerService.getRecord(record.getId()).getTags());
     }
 
     @Test
-    public void removeTag_NullIdWithValidTagShouldFail() {
+    public void updateTags_ValidRecordWithNullTagShouldFail() {
 
         List<String> tags = new ArrayList<>();
         tags.add("apple");
         tags.add("google");
-        
+
+        // Create record with two tags present
         bookmarkerService.addRecord("www.google.com", tags);
 
         Record record = bookmarkerService.getAllRecords().get(0);
-        List<String> originalTags = record.getTags();
 
-        Assert.assertFalse("records present",
-                bookmarkerService.removeTag(null, "valid"));
-
-        Assert.assertEquals("records changed",
-                1,
-                bookmarkerService.getAllRecords().size());
-
-        record = bookmarkerService.getAllRecords().get(0);
+        Assert.assertFalse("tag updated",
+                bookmarkerService.updateTags(record, null));
 
         Assert.assertEquals("tags changed",
-                originalTags,
-                record.getTags());
+                tags,
+                bookmarkerService.getRecord(record.getId()).getTags());
+
     }
 
     @Test
-    public void removeTag_BlankIdWithValidTagShouldFail() {
+    public void updateTags_ValidRecordWithEmptyTagShouldFail() {
 
         List<String> tags = new ArrayList<>();
         tags.add("apple");
         tags.add("google");
-        
+
+        // Create record with two tags present
         bookmarkerService.addRecord("www.google.com", tags);
 
         Record record = bookmarkerService.getAllRecords().get(0);
-        List<String> originalTags = record.getTags();
 
-        Assert.assertFalse("records present",
-                bookmarkerService.removeTag("", "valid"));
-
-        Assert.assertEquals("records changed",
-                1,
-                bookmarkerService.getAllRecords().size());
-
-        record = bookmarkerService.getAllRecords().get(0);
+        Assert.assertFalse("tag updated",
+                bookmarkerService.updateTags(record, new ArrayList<>()));
 
         Assert.assertEquals("tags changed",
-                originalTags,
-                record.getTags());
+                tags,
+                bookmarkerService.getRecord(record.getId()).getTags());
 
     }
 
     @Test
-    public void removeTag_ValidIdWithBlankTagShouldFail() {
+    public void updateTags_BlankRecordWithValidTagShouldFail() {
 
-        List<String> tags = new ArrayList<>();
-        tags.add("apple");
-        tags.add("google");
-        
-        bookmarkerService.addRecord("www.google.com", tags);
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("invalid record id");
 
-        Record record = bookmarkerService.getAllRecords().get(0);
-        List<String> originalTags = record.getTags();
-
-        Assert.assertFalse("records present",
-                bookmarkerService.removeTag(record.getId(), ""));
-
-        record = bookmarkerService.getAllRecords().get(0);
-
-        Assert.assertEquals("tags changed",
-                originalTags,
-                record.getTags());
-
+        bookmarkerService.updateTags(new Record(), Arrays.asList("test1", "test2"));
     }
 
     @Test
-    public void removeTag_ValidIdWithNullTagShouldFail() {
+    public void updateTags_NullRecordWithValidTagShouldFail() {
 
-        List<String> tags = new ArrayList<>();
-        tags.add("apple");
-        tags.add("google");
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("invalid record id");
 
-        bookmarkerService.addRecord("www.google.com", tags);
-
-        Record record = bookmarkerService.getAllRecords().get(0);
-        List<String> originalTags = record.getTags();
-
-        Assert.assertFalse("records present",
-                bookmarkerService.removeTag(record.getId(), null));
-
-        record = bookmarkerService.getAllRecords().get(0);
-
-        Assert.assertEquals("tags changed",
-                originalTags,
-                record.getTags());
+        bookmarkerService.updateTags(null, Arrays.asList("test1", "test2"));
     }
 
     @Test
-    public void removeTag_ValidIdWithValidTagShouldBeSuccessful() {
+    public void updateTags_InvalidRecordWithValidTagShouldFail() {
 
-        List<String> tags = new ArrayList<>();
-        tags.add("apple");
-        tags.add("google");
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("invalid record id");
 
-        bookmarkerService.addRecord("www.google.com", tags);
-
-        Record record = bookmarkerService.getAllRecords().get(0);
-
-        Assert.assertTrue("records present",
-                bookmarkerService.removeTag(record.getId(), "google"));
-
-        Assert.assertEquals("tags unchanged",
-                Arrays.asList("apple"),
-                record.getTags());
+        Record record = new Record();
+        record.setId("--");
+        bookmarkerService.updateTags(record, Arrays.asList("test1", "test2"));
     }
 }

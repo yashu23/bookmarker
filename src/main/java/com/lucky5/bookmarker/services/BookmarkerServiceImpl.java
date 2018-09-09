@@ -4,8 +4,8 @@ import com.lucky5.bookmarker.model.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
-import javax.swing.text.html.Option;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -22,12 +22,20 @@ public class BookmarkerServiceImpl implements BookmarkerService {
     private final Map<String, Record> records = new HashMap<>();
     private static final Logger log = LoggerFactory.getLogger(BookmarkerServiceImpl.class);
 
+    /**
+     * Add a bookmark record to inventory.
+     *
+     * @param info - Information to be stored
+     * @param tags - Information tags
+     *
+     * @return Id of newly created record.
+     */
     @Override
-    public boolean addRecord(String info, List<String> tags) {
+    public String addRecord(String info, List<String> tags) {
 
         // If no valid information present then it should not be added to bookmark store
         if ( null == info || info.trim().length() == 0 )
-            return false;
+            throw new IllegalArgumentException("info cant be blank or null");
         
         Record record = new Record();
         record.setId(UUID.randomUUID().toString());
@@ -47,9 +55,17 @@ public class BookmarkerServiceImpl implements BookmarkerService {
 
         log.debug("record {} added successfully", record);
 
-        return true;
+        return record.getId();
     }
 
+
+    /**
+     * Delete record from inventory
+     *
+     * @param id - id of record to be deleted
+     *
+     * @return - true if delete was successful, else false
+     */
     @Override
     public boolean deleteRecord(String id) {
         if (records.containsKey(id)) {
@@ -60,11 +76,24 @@ public class BookmarkerServiceImpl implements BookmarkerService {
         }
     }
 
+    /**
+     * Returns all records present in inventory.
+     *
+     * @return - {@link List} list of records {@link Record} present in the inventory.
+     */
     @Override
     public List<Record> getAllRecords() {
         return new ArrayList<>(records.values());
     }
 
+
+    /**
+     * Filter records based on input tag.
+     *
+     * @param tag - tags to be used for filtering
+     *
+     * @return - {@link List} list of records {@link Record} present in the filtered response.
+     */
     @Override
     public List<Record> getFilteredRecord(String tag) {
 
@@ -77,37 +106,84 @@ public class BookmarkerServiceImpl implements BookmarkerService {
         }
     }
 
-    @Override
-    public boolean addTag(String id, String tag) {
-        Record record = records.get(id);
-        if (record != null) {
 
-            if (tag != null && tag.trim().length() > 0) {
-                record.getTags().add(tag);
-                record.setLastUpdated(new Date());
-                return true;
-            } else {
-                return false;
+    /**
+     * Update record information
+     *
+     * @param record - {@link Record}
+     *
+     * @return - true if updated else false
+     */
+    @Override
+    public boolean updateRecord(Record record) {
+
+        if (record == null) {
+            throw new IllegalArgumentException("invalid record id");
+        }
+
+        if (records.get(record.getId()) != null) {
+
+            Record originalRecord = records.get(record.getId());
+
+            log.debug("original record {}", originalRecord);
+
+            if (!StringUtils.isEmpty(record.getInfo())) {
+
+                originalRecord.setInfo(record.getInfo());
+
             }
+
+            updateTags(originalRecord, record.getTags());
+
+            originalRecord.setLastUpdated(new Date());
+
+            log.debug("updated record {}", originalRecord);
+
+            return true;
+
         } else {
-            return false;
+            throw new IllegalArgumentException("invalid record id");
         }
     }
 
+    /**
+     * Get record by id.
+     *
+     * @param id
+     * @return
+     */
     @Override
-    public boolean removeTag(String id, String tag) {
-        Record record = records.get(id);
-        if (record != null) {
+    public Record getRecord(String id) {
 
-            if (tag != null && tag.trim().length() > 0) {
-                record.getTags().remove(tag);
-                record.setLastUpdated(new Date());
-                return true;
-            } else {
-                return false;
-            }
+        if (StringUtils.isEmpty(id)) {
+            throw new IllegalArgumentException("info cant be blank or null");
+        }
+        return records.get(id);
+    }
+
+
+    /**
+     * Update tag on input record.
+     *
+     * @param record
+     * @param tags
+     *
+     * @return true if updated, else false
+     */
+    @Override
+    public boolean updateTags(Record record, List<String> tags) {
+
+        if (record == null || StringUtils.isEmpty(record.getId())
+                || StringUtils.isEmpty(record.getInfo())) {
+            throw new IllegalArgumentException("invalid record id");
+        }
+
+        if (tags != null && tags.size() > 0) {
+            record.setTags(tags);
+            return true;
         } else {
             return false;
         }
+
     }
 }

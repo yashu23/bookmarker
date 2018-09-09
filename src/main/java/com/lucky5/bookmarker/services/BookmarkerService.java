@@ -15,15 +15,17 @@ import java.util.Map;
  */
 public interface BookmarkerService {
 
-    public boolean addRecord(final String info, final List<String> tags);
+    String addRecord(final String info, final List<String> tags);
 
-    public boolean deleteRecord(final String id);
+    boolean deleteRecord(final String id);
 
-    public List<Record> getAllRecords();
+    List<Record> getAllRecords();
 
-    public List<Record> getFilteredRecord(final String tag);
+    List<Record> getFilteredRecord(final String tag);
 
-    public boolean addTag(final String id, final String tag);
+    boolean updateRecord(final Record record);
 
-    public boolean removeTag(final String id, final String tag);
+    Record getRecord(final String id);
+
+    boolean updateTags(Record record, List<String> tags);
 }

@@ -101,7 +101,7 @@ public class BookmarkController {
         return new ResponseEntity<>(results, HttpStatus.OK);
     }
 
-    @PutMapping(value = "/records/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PutMapping(value = "/records/{id}")
     public ResponseEntity<Record> updateRecord(@PathVariable String id, @Valid @RequestBody Record record) {
 
         log.info("entering updateRecord");
@@ -133,5 +133,29 @@ public class BookmarkController {
         finally {
             log.info("leaving updateRecord");
         }
+    }
+
+
+    @DeleteMapping(value = "/records/{id}")
+    public ResponseEntity<String> deleteRecord(@Valid @RequestBody Record record) {
+
+        log.info("entering addRecord");
+        final String responseId;
+        final long startTime = System.nanoTime();
+        try {
+            responseId = bookmarkerService.addRecord(record.getInfo(), record.getTags());
+
+            operationHistogram.labels("add", "pass", HttpStatus.OK.toString())
+                    .observe((System.nanoTime() - startTime) / 1000000);
+
+        } catch (IllegalArgumentException ex) {
+
+            log.error("invalid input received {}", ex);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        log.info("leaving addRecord");
+
+        return new ResponseEntity<>("{\"id\": \"" + responseId + "\"}", HttpStatus.OK);
     }
 }

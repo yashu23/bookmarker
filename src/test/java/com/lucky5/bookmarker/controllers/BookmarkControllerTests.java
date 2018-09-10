@@ -174,7 +174,7 @@ public class BookmarkControllerTests {
     }
 
     @Test
-    public void test_updateInvalidRecordShouldFail() throws Exception {
+    public void test_updateRecordWithInvalidInfoShouldFail() throws Exception {
 
         // Now we need to mock response for update operation
         when(bookmarkerService.updateRecord(any())).thenReturn(false);
@@ -186,4 +186,23 @@ public class BookmarkControllerTests {
                 .andExpect(status().is4xxClientError());
 
     }
+
+    @Test
+    public void test_deleteRecordWithValidIdShouldPass() throws Exception {
+
+        when(bookmarkerService.deleteRecord("test")).thenReturn(true);
+
+        mockMvc.perform(delete("/records/test"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void test_deleteRecordWithInvalidIdShouldFail() throws Exception {
+
+        when(bookmarkerService.deleteRecord("test")).thenReturn(false);
+
+        mockMvc.perform(delete("/records/test"))
+                .andExpect(status().is4xxClientError());
+    }
+
 }

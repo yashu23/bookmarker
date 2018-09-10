@@ -240,7 +240,7 @@ public class BookmarkerServiceImplTests {
     public void updateRecord_WithNullRecordShouldFail() {
 
         expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage("invalid record id");
+        expectedException.expectMessage("invalid record");
 
         Assert.assertFalse("records present",
                 bookmarkerService.updateRecord(null));
@@ -253,10 +253,8 @@ public class BookmarkerServiceImplTests {
         Record record = new Record();
         record.setId("");
 
-        int originalSize = bookmarkerService.getAllRecords().size();
-
         expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage("invalid record id");
+        expectedException.expectMessage("invalid record");
 
         bookmarkerService.updateRecord(record);
 
@@ -276,17 +274,15 @@ public class BookmarkerServiceImplTests {
 
         record.setInfo("");
 
-        int originalSize = bookmarkerService.getAllRecords().size();
-
         expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage("invalid record id");
+        expectedException.expectMessage("invalid record");
 
         bookmarkerService.updateRecord(record);
 
         record.setInfo("");
 
         expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage("invalid record id");
+        expectedException.expectMessage("invalid record");
 
         bookmarkerService.updateRecord(record);
     }

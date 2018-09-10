@@ -117,40 +117,36 @@ public class BookmarkerServiceImpl implements BookmarkerService {
     @Override
     public boolean updateRecord(Record record) {
 
-        if (record == null) {
-            throw new IllegalArgumentException("invalid record id");
+        if (record == null || StringUtils.isEmpty(record.getId())
+                || records.get(record.getId()) == null) {
+            throw new IllegalArgumentException("invalid record");
         }
 
-        if (records.get(record.getId()) != null) {
+        Record originalRecord = records.get(record.getId());
 
-            Record originalRecord = records.get(record.getId());
+        log.debug("original record {}", originalRecord);
 
-            log.debug("original record {}", originalRecord);
+        if (!StringUtils.isEmpty(record.getInfo())) {
 
-            if (!StringUtils.isEmpty(record.getInfo())) {
+            originalRecord.setInfo(record.getInfo());
 
-                originalRecord.setInfo(record.getInfo());
-
-            }
-
-            updateTags(originalRecord, record.getTags());
-
-            originalRecord.setLastUpdated(new Date());
-
-            log.debug("updated record {}", originalRecord);
-
-            return true;
-
-        } else {
-            throw new IllegalArgumentException("invalid record id");
         }
+
+        updateTags(originalRecord, record.getTags());
+
+        originalRecord.setLastUpdated(new Date());
+
+        log.debug("updated record {}", originalRecord);
+
+        return true;
     }
 
     /**
      * Get record by id.
      *
-     * @param id
-     * @return
+     * @param id - Id of record
+     *
+     * @return - Record details
      */
     @Override
     public Record getRecord(String id) {
@@ -165,8 +161,8 @@ public class BookmarkerServiceImpl implements BookmarkerService {
     /**
      * Update tag on input record.
      *
-     * @param record
-     * @param tags
+     * @param record - Record to be updated
+     * @param tags - List of tags to be attached to record
      *
      * @return true if updated, else false
      */

@@ -1,5 +1,8 @@
 package com.lucky5.bookmarker.model;
 
+import org.hibernate.validator.constraints.NotEmpty;
+
+import javax.persistence.Entity;
 import java.util.Date;
 import java.util.List;
 
@@ -10,10 +13,14 @@ import java.util.List;
  * Created      : 7/09/2018 22:10
  * Description  : Model class for information record
  */
+@Entity
 public class Record {
 
     private String id;
+
+    @NotEmpty(message = "info cant be blank")
     private String info;
+
     private List<String> tags;
     private Date lastUpdated;
     private Date creationDate;
@@ -61,11 +68,11 @@ public class Record {
     @Override
     public String toString() {
         return "Record{" +
-                "id='" + id + '\'' +
-                ", info='" + info + '\'' +
-                ", tags=" + tags +
-                ", lastUpdated=" + lastUpdated +
-                ", creationDate=" + creationDate +
+                "id='" + getId() + '\'' +
+                ", info='" + getInfo() + '\'' +
+                ", tags=" + getTags() +
+                ", lastUpdated=" + getLastUpdated() +
+                ", creationDate=" + getCreationDate() +
                 '}';
     }
 

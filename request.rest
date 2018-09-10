@@ -1,0 +1,31 @@
+GET http://localhost:8080/records HTTP/1.1
+
+GET http://localhost:8080/records/f951c75c-7d84-4c87-99b7-006b29635cdd HTTP/1.1
+
+POST http://localhost:8080/records HTTP/1.1
+content-type: application/json
+
+{
+    "info": "http://apple.com",
+    "tags": [
+        "apple",
+        "macbook-pro",
+        "ipad"
+    ]    
+}
+
+
+GET http://localhost:8080/records/db26e70d-6565-4e0a-ab50-839c5b053ae3 HTTP/1.1
+
+PUT http://localhost:8080/records/db26e70d-6565-4e0a-ab50-839c5b053ae3 HTTP/1.1
+content-type: application/json
+
+{
+    "info": "http://apple.com",
+    "tags": [
+        "apple",
+        "macbook-pro",
+        "ipad",
+        "appletv"
+    ]    
+}

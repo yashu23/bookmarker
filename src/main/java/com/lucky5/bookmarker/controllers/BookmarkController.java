@@ -102,12 +102,13 @@ public class BookmarkController {
     }
 
     @PutMapping(value = "/records/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Record> updateRecord(@Valid @RequestBody Record record) {
+    public ResponseEntity<Record> updateRecord(@PathVariable String id, @Valid @RequestBody Record record) {
 
         log.info("entering updateRecord");
         final long startTime = System.nanoTime();
 
         try {
+            record.setId(id);
             boolean result = bookmarkerService.updateRecord(record);
 
             // No data found

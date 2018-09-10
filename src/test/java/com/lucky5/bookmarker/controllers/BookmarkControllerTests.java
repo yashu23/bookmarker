@@ -135,6 +135,45 @@ public class BookmarkControllerTests {
     }
 
     @Test
+    public void test_updateRecordWithNoSetIdShouldPass() throws Exception {
+
+        // Data setup for mock
+        Record record = new Record();
+        record.setInfo("test");
+        record.setId("test");
+
+        List<String> tags = new ArrayList<>();
+        tags.add("google");
+        tags.add("apple");
+        tags.add("microsoft");
+
+        record.setTags(tags);
+
+        // Now we need to mock response for update operation
+        when(bookmarkerService.updateRecord(record)).thenReturn(true);
+
+        // Input record with no id set in the path
+        Record inputRecord = new Record();
+        inputRecord.setInfo("test");
+
+        List<String> inputTags = new ArrayList<>();
+        inputTags.add("google");
+        inputTags.add("apple");
+        inputTags.add("microsoft");
+
+        inputRecord.setTags(inputTags);
+
+        // If request is made with no id then an exception would be thrown
+        when(bookmarkerService.updateRecord(inputRecord)).thenThrow(new IllegalArgumentException("invalid input"));
+
+        mockMvc.perform(put("/records/test")
+                .contentType(MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .content(objectMapper.writeValueAsString(inputRecord)))
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
     public void test_updateInvalidRecordShouldFail() throws Exception {
 
         // Now we need to mock response for update operation

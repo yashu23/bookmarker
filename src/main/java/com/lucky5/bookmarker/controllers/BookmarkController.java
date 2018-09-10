@@ -137,25 +137,29 @@ public class BookmarkController {
 
 
     @DeleteMapping(value = "/records/{id}")
-    public ResponseEntity<String> deleteRecord(@Valid @RequestBody Record record) {
+    public ResponseEntity<String> deleteRecord(@PathVariable String id) {
 
-        log.info("entering addRecord");
-        final String responseId;
+        log.info("entering deleteRecord");
         final long startTime = System.nanoTime();
         try {
-            responseId = bookmarkerService.addRecord(record.getInfo(), record.getTags());
+            bookmarkerService.deleteRecord(id);
 
-            operationHistogram.labels("add", "pass", HttpStatus.OK.toString())
+            operationHistogram.labels("delete", "pass", HttpStatus.OK.toString())
                     .observe((System.nanoTime() - startTime) / 1000000);
+
+            return new ResponseEntity<String>(HttpStatus.OK);
 
         } catch (IllegalArgumentException ex) {
 
             log.error("invalid input received {}", ex);
+
+            operationHistogram.labels("delete", "fail", HttpStatus.BAD_REQUEST.toString())
+                    .observe((System.nanoTime() - startTime) / 1000000);
+
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
-        log.info("leaving addRecord");
-
-        return new ResponseEntity<>("{\"id\": \"" + responseId + "\"}", HttpStatus.OK);
+        finally {
+            log.info("leaving deleteRecord");
+        }
     }
 }

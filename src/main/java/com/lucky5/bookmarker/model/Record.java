@@ -3,6 +3,7 @@ package com.lucky5.bookmarker.model;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import java.util.Date;
 import java.util.List;
 
@@ -13,9 +14,9 @@ import java.util.List;
  * Created      : 7/09/2018 22:10
  * Description  : Model class for information record
  */
-@Entity
 public class Record {
 
+    @Id
     private String id;
 
     @NotEmpty(message = "info cant be blank")

@@ -34,7 +34,7 @@ public class BookmarkController {
 
     @PostMapping(value = "/records", produces = MediaType.APPLICATION_JSON_UTF8_VALUE,
             consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<String> addRecord(@Valid Record record) {
+    public ResponseEntity<String> addRecord(@Valid @RequestBody Record record) {
 
         log.info("entering addRecord");
         final String responseId;
@@ -102,7 +102,7 @@ public class BookmarkController {
     }
 
     @PutMapping(value = "/records/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public ResponseEntity<Record> updateRecord(@Valid Record record) {
+    public ResponseEntity<Record> updateRecord(@Valid @RequestBody Record record) {
 
         log.info("entering updateRecord");
         final long startTime = System.nanoTime();
